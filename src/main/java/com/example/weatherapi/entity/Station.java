@@ -1,22 +1,30 @@
 package com.example.weatherapi.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("stations")
+import java.io.Serializable;
+import java.util.List;
+
+@Table(name = "stations", schema = "weather_api")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@RedisHash("Station")
-public class Station {
+public class Station implements Serializable {
+    @Column("id")
+    private String id;
     @Id
-    private Long id;
+    @Column("station_code")
+    private String stationCode;
+    @Column("name")
     private String name;
+    @Column("country")
     private String country;
+    @Transient
+    @ToString.Exclude
+    private List<Weather> weatherList;
 }

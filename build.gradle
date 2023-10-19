@@ -1,7 +1,7 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.4'
-	id 'io.spring.dependency-management' version '1.1.3'
+	id 'org.springframework.boot' version "$springBootVersion"
+	id 'io.spring.dependency-management' version "$springDependencyManagementVersion"
 }
 
 group = 'com.example'
@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
+//	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.session:spring-session-core'
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis-reactive', version: '3.1.5'
@@ -28,7 +28,10 @@ dependencies {
 
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 
-	compileOnly 'org.projectlombok:lombok:1.18.30'
+	compileOnly "org.projectlombok:lombok"
+	annotationProcessor "org.projectlombok:lombok"
+	annotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
+
 
 	implementation 'javax.xml.bind:jaxb-api:2.3.0'
 

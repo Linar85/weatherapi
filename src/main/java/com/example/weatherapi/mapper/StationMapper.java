@@ -5,7 +5,7 @@ import com.example.weatherapi.entity.Station;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface StationMapper {
 
     StationDto map(Station entity);
