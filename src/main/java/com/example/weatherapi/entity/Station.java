@@ -26,5 +26,5 @@ public class Station implements Serializable {
     private String country;
     @Transient
     @ToString.Exclude
-    private List<Weather> weatherList;
+    private List<Weather> weathers;
 }

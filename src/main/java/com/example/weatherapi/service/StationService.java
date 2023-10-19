@@ -30,7 +30,7 @@ public class StationService {
                 .map(tuples -> {
                     Station station = tuples.getT1();
                     List<Weather> weathers = tuples.getT2();
-                    station.setWeatherList(weathers);
+                    station.setWeathers(weathers);
                     return stationMapper.map(station);
                 });
     }

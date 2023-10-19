@@ -13,5 +13,5 @@ public class StationDto {
     private String stationCode;
     private String name;
     private String country;
-    private List<Weather> weather;
+    private List<Weather> weathers;
 }
