@@ -19,7 +19,7 @@ import static org.instancio.Select.field;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class RedisUpdater {
+public class DataUpdater {
 
     private final WeatherDao weatherDao;
     private final WeatherRedisDao weatherRedisDao;
@@ -27,7 +27,7 @@ public class RedisUpdater {
     private final StationRedisDao stationRedisDao;
 
     @Scheduled(fixedRate = 5000)
-    public void weatherUpdate() {
+    public Flux<Long> weatherUpdate() {
         weatherRedisDao.evict().subscribe();
 
         Weather weather = Instancio.of(Weather.class)
@@ -45,17 +45,19 @@ public class RedisUpdater {
 
         weatherDao.save(weather).subscribe();
         log.info("TABLE Weather ON Postgres UPDATED");
-        weatherDao.findAll().flatMap(weatherRedisDao::save).subscribe();
         log.info("KEY Weather ON Redis UPDATED");
+        weatherDao.findAll().flatMap(weatherRedisDao::save).subscribe();
+        return Flux.just(1L);
     }
 
     @PostConstruct
-    public void stationUpdate() {
-        stationRedisDao.evict().subscribe();               // очищаем редис
-        stationDao.saveAll(stationList()).subscribe();     //пишем в вд
+    public Flux<Long> stationUpdate() {
+        stationRedisDao.evict().subscribe();
+        stationDao.saveAll(stationList()).subscribe();
         log.info("TABLE Stations ON Postgres UPDATED");
-        stationList().flatMap(stationRedisDao::save).subscribe();  //пишем в редис
         log.info("KEY Stations ON Redis UPDATED");
+        stationList().flatMap(stationRedisDao::save).subscribe();
+        return Flux.just(1L);
     }
 
     private Flux<Station> stationList() {
