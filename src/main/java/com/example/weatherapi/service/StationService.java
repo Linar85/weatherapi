@@ -5,11 +5,14 @@ import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
 import com.example.weatherapi.mapper.StationMapper;
 import com.example.weatherapi.repository.StationDao;
+import com.example.weatherapi.repository.StationRedisDao;
 import com.example.weatherapi.repository.WeatherDao;
+import com.example.weatherapi.repository.WeatherRedisDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
@@ -20,13 +23,22 @@ public class StationService {
     private final StationDao stationDao;
     private final WeatherDao weatherDao;
     private final StationMapper stationMapper;
+    private final StationRedisDao stationRedisDao;
+    private final WeatherRedisDao weatherRedisDao;
 
-    public Flux<StationDto> findAvailableStations() {
-        return stationDao.findAll().map(stationMapper::map);
+    /**
+     * идем в редис, если там нету данных, идем в БД, полученные данные пишем в редис затем отдаем их
+     */
+    public Flux<Station> findAvailableStations() {
+        return stationRedisDao.findAll().switchIfEmpty(
+                stationDao.findAll().publishOn(Schedulers.boundedElastic()).map(st -> {
+                    stationRedisDao.save(st).subscribe();
+                    return st;
+                }));
     }
 
     public Mono<StationDto> findWeathersOnStationByStationCode(String stationCode) {
-        return Mono.zip(stationDao.findByStationCode(stationCode), weatherDao.findAllByStationCode(stationCode).collectList())
+        return Mono.zip(stationRedisDao.findByStationCode(stationCode), weatherRedisDao.findByStationCode(stationCode).collectList())
                 .map(tuples -> {
                     Station station = tuples.getT1();
                     List<Weather> weathers = tuples.getT2();

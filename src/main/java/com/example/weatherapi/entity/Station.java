@@ -1,5 +1,6 @@
 package com.example.weatherapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -15,9 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Station implements Serializable {
-    @Column("id")
-    private String id;
     @Id
+    private String id;
     @Column("station_code")
     private String stationCode;
     @Column("name")
@@ -26,5 +26,6 @@ public class Station implements Serializable {
     private String country;
     @Transient
     @ToString.Exclude
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Weather> weathers;
 }

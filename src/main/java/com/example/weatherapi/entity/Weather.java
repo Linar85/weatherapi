@@ -1,9 +1,7 @@
 package com.example.weatherapi.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -20,7 +18,7 @@ public class Weather implements Serializable {
     @Id
     private String id;
     @Column("temp_c")
-    private Double tempC;
+    private Integer tempC;
     @Column("wind_kph")
     private Integer windKph;
     @Column("wind_dir")
@@ -36,5 +34,7 @@ public class Weather implements Serializable {
     @Column("station_code")
     private String stationCode;
     @Transient
+    @ToString.Exclude
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Station station;
 }

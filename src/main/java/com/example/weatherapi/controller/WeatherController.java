@@ -1,10 +1,7 @@
 package com.example.weatherapi.controller;
 
 import com.example.weatherapi.dto.StationDto;
-import com.example.weatherapi.dto.WeatherDto;
-import com.example.weatherapi.mapper.WeatherMapper;
-import com.example.weatherapi.repository.StationDao;
-import com.example.weatherapi.repository.WeatherDao;
+import com.example.weatherapi.mapper.StationMapper;
 import com.example.weatherapi.service.StationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,26 +16,12 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api")
 public class WeatherController {
 
-
-    private final WeatherDao weatherDao;
     private final StationService stationService;
-    private final WeatherMapper weatherMapper;
-    private final StationDao stationDao;
-
+    private final StationMapper stationMapper;
 
     @GetMapping("/stations")
     public Flux<StationDto> getStations() {
-        return stationService.findAvailableStations();
-    }
-
-    @GetMapping("/weather/{station-code}")
-    public Flux<WeatherDto> getWeather(@PathVariable("station-code") String stationCode) {
-        return weatherDao.findAllByStationCode(stationCode)
-                .flatMap(weather -> stationDao.findById(weather.getStationCode())
-                        .map(station -> {
-                            weather.setStation(station);
-                            return weather;
-                        }).map(weatherMapper::map));
+        return stationService.findAvailableStations().map(stationMapper::map);
     }
 
     @GetMapping("/stations/{station-code}")

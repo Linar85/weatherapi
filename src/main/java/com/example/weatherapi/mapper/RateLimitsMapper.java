@@ -5,7 +5,7 @@ import com.example.weatherapi.entity.RateLimits;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface RateLimitsMapper {
 
     RateLimitsDto map(RateLimits entity);
