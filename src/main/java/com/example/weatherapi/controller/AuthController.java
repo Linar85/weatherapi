@@ -5,9 +5,11 @@ import com.example.weatherapi.dto.AuthRqDto;
 import com.example.weatherapi.dto.AuthRsDto;
 import com.example.weatherapi.dto.UserDto;
 import com.example.weatherapi.entity.User;
+import com.example.weatherapi.mapper.ApiKeyMapper;
 import com.example.weatherapi.mapper.UserMapper;
 import com.example.weatherapi.security.CustomPrincipal;
 import com.example.weatherapi.security.SecurityService;
+import com.example.weatherapi.service.ApiKeyService;
 import com.example.weatherapi.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,8 @@ public class AuthController {
     private final SecurityService securityService;
     private final UserService userService;
     private final UserMapper userMapper;
+    private final ApiKeyService apiKeyService;
+    private final ApiKeyMapper apiKeyMapper;
 
 
     @PostMapping("/register")
@@ -43,8 +47,9 @@ public class AuthController {
                 ));
     }
 
-    public Mono<ApiKeyDto> getApiKey(@RequestBody UserDto userDto) {
-        return null;
+    @PostMapping("/get-api-key")
+    public Mono<ApiKeyDto> getApiKey(Authentication authentication) {
+        return apiKeyService.apiKeyGenerate(authentication).map(apiKeyMapper::map);
     }
 
     @GetMapping("/info")

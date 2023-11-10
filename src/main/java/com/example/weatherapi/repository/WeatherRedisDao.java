@@ -8,29 +8,21 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 
 @Repository
 @RequiredArgsConstructor
 public class WeatherRedisDao implements Serializable {
 
-    private final String KEY = "weathers";
-
     private final ReactiveRedisOperations<String, Weather> redisTemplate;
 
-    public Flux<Long> save(Weather weather) {
-        return this.redisTemplate.opsForList().leftPush(KEY, weather).flux();
-    }
-
-    public Flux<Weather> findAll() {
-        return this.redisTemplate.opsForList().range(KEY, 0, -1);
+    public Mono<Void> saveWeather(String about, String stationCode, Weather weather) {
+        String key = about + "#" + stationCode + "#" + weather.getCreatedAt().format(DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH"));
+        return this.redisTemplate.opsForValue().set(key, weather).then();
     }
 
     public Flux<Weather> findByStationCode(String stationCode) {
-        return this.redisTemplate.opsForList().range(KEY, 0, -1)
-                .filter(st -> st.getStationCode().equals(stationCode));
-    }
-
-    public Mono<Boolean> evict() {
-        return this.redisTemplate.opsForList().delete(KEY);
+        return this.redisTemplate.keys("*" + stationCode + "*")
+                .flatMap(key -> this.redisTemplate.opsForValue().get(key));
     }
 }

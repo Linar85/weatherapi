@@ -31,14 +31,31 @@ public class StationService {
      */
     public Flux<Station> findAvailableStations() {
         return stationRedisDao.findAll().switchIfEmpty(
-                stationDao.findAll().publishOn(Schedulers.boundedElastic()).map(st -> {
-                    stationRedisDao.save(st).subscribe();
-                    return st;
-                }));
+                stationDao.findAll().publishOn(Schedulers.boundedElastic())
+                        .map(st -> {
+                            stationRedisDao.save(st).subscribe();
+                            return st;
+                        }));
     }
 
     public Mono<StationDto> findWeathersOnStationByStationCode(String stationCode) {
-        return Mono.zip(stationRedisDao.findByStationCode(stationCode), weatherRedisDao.findByStationCode(stationCode).collectList())
+        return Mono.zip(stationRedisDao.findByStationCode(stationCode)
+                                .switchIfEmpty(
+                                        stationDao.findByStationCode(stationCode)
+                                                .map(st -> {
+                                                    stationRedisDao.save(st).subscribe();
+                                                    return st;
+                                                })),
+                        weatherRedisDao.findByStationCode(stationCode)
+                                .switchIfEmpty(weatherDao.findAllByStationCode(stationCode))
+                                .map(weather -> {
+                                    weatherRedisDao.saveWeather("weather",
+                                                    stationCode,
+                                                    weather)
+                                            .subscribe();
+                                    return weather;
+                                })
+                                .collectList())
                 .map(tuples -> {
                     Station station = tuples.getT1();
                     List<Weather> weathers = tuples.getT2();

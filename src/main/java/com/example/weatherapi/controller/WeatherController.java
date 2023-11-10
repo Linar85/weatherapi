@@ -1,7 +1,10 @@
 package com.example.weatherapi.controller;
 
 import com.example.weatherapi.dto.StationDto;
+import com.example.weatherapi.entity.ApiKey;
+
 import com.example.weatherapi.mapper.StationMapper;
+import com.example.weatherapi.repository.ApiKeyRedisDao;
 import com.example.weatherapi.service.StationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +21,7 @@ public class WeatherController {
 
     private final StationService stationService;
     private final StationMapper stationMapper;
+    private final ApiKeyRedisDao apiKeyRedisDao;
 
     @GetMapping("/stations")
     public Flux<StationDto> getStations() {
@@ -28,4 +32,9 @@ public class WeatherController {
     public Mono<StationDto> findWeathersOnStation(@PathVariable("station-code") String stationId) {
         return stationService.findWeathersOnStationByStationCode(stationId);
     }
+
+//    @GetMapping("/redis-get/{id}")
+//    public Mono<ApiKey> redis(@PathVariable("id") String userName) {
+//        return apiKeyRedisDao.findByUserId(userName);
+//    }
 }

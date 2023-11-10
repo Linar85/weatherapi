@@ -1,6 +1,10 @@
 package com.example.weatherapi.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -8,11 +12,12 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Table(name = "weather", schema = "weather_api")
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Data
 public class Weather implements Serializable {
     @Id
@@ -33,6 +38,10 @@ public class Weather implements Serializable {
     private Integer conditionCode;
     @Column("station_code")
     private String stationCode;
+    @Column("created_at")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime createdAt;
     @Transient
     @ToString.Exclude
     @JsonInclude(JsonInclude.Include.NON_NULL)

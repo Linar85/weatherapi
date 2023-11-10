@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
@@ -14,16 +13,22 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class ApiKeyRedisDao implements Serializable {
 
-    private final String KEY = "apikeys";
+    @Autowired
+    private final ReactiveRedisOperations<String, ApiKey> redisTemplate;
 
-//    @Autowired
-//    private final ReactiveRedisOperations<String, ApiKey> redisTemplate;
-//
-//    public Mono<Long> save(ApiKey apiKey) {
-//        return redisTemplate.opsForList().rightPush(KEY, apiKey);
-//    }
-//
-//    public Flux<ApiKey> findAll() {
-//        return redisTemplate.opsForList().range(KEY, 0, -1);
-//    }
+    public Mono<Void> save(ApiKey apiKey) {
+        String key = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
+        redisTemplate.keys("apikey#" + apiKey.getUserId() + "*").flatMap(redisTemplate::delete).subscribe();
+        return this.redisTemplate.opsForValue().set(key, apiKey).then();
+    }
+
+    public Mono<ApiKey> findByUserId(Long userId) {
+        return redisTemplate.keys("*" + userId + "*")
+                .flatMap(key -> this.redisTemplate.opsForValue().get(key)).next();
+    }
+
+    public Mono<ApiKey> findByKey(String apiKey) {
+        return redisTemplate.keys("apikey*" + apiKey + "*")
+                .flatMap(key -> this.redisTemplate.opsForValue().get(key)).next();
+    }
 }

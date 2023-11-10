@@ -25,7 +25,7 @@ public class WebSecurityConfig {
     @Value("${jwt.secret}")
     private String secret;
 
-    private final String [] publicRoutes = {"/api/register", "/api/login"};
+    private final String[] publicRoutes = {"/api/register", "/api/login", "/api/stations", "/api/stations/**"};
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, AuthenticationManager authenticationManager) {
@@ -40,7 +40,7 @@ public class WebSecurityConfig {
                 .authenticated()
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint((swe , e) -> {
+                .authenticationEntryPoint((swe, e) -> {
                     log.error("IN securityWebFilterChain - unauthorized error: {}", e.getMessage());
                     return Mono.fromRunnable(() -> swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED));
                 })
@@ -61,5 +61,4 @@ public class WebSecurityConfig {
 
         return bearerAuthenticationFilter;
     }
-
 }

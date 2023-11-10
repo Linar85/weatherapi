@@ -1,11 +1,9 @@
 package com.example.weatherapi.utils;
 
+import com.example.weatherapi.entity.RateLimiter;
 import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
-import com.example.weatherapi.repository.StationDao;
-import com.example.weatherapi.repository.StationRedisDao;
-import com.example.weatherapi.repository.WeatherDao;
-import com.example.weatherapi.repository.WeatherRedisDao;
+import com.example.weatherapi.repository.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +11,10 @@ import org.instancio.Instancio;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.instancio.Select.field;
 
@@ -25,39 +27,52 @@ public class DataUpdater {
     private final WeatherRedisDao weatherRedisDao;
     private final StationDao stationDao;
     private final StationRedisDao stationRedisDao;
+    private final RateLimiterDao rateLimiterDao;
 
-    @Scheduled(fixedRate = 5000)
-    public Flux<Long> weatherUpdate() {
-        weatherRedisDao.evict().subscribe();
+    @Scheduled(fixedRate = 900000)
+//    @Scheduled(cron = "0 0 0,3,6,9,12,15,18,21 * * *")
+    public Mono<Void> weatherUpdate() {
+        List<String> stationCodes = List.of("OKT", "BLR", "STR", "UFA", "KZN", "SBY");
 
-        Weather weather = Instancio.of(Weather.class)
-                .generate(field("tempC"), gen -> gen.ints().range(-40, 45))
-                .generate(field("windKph"), gen -> gen.ints().range(0, 20))
-                .generate(field("windDir"), gen -> gen.oneOf("S", "SE", "E", "NE", "N", "NW", "W", "SW"))
-                .generate(field("cloudOkt"), gen -> gen.ints().range(0, 8))
-                .generate(field("cloudType"), gen -> gen.oneOf("Cb", "Cu", "St", "Cs", "As", "Ns", "Ci", "Cc", "Ac", "Sc"))
-                .generate(field("conditionsText"), gen -> gen.oneOf("rain", "sun", "snow", "dust", "cloud"))
-                .generate(field("conditionCode"), gen -> gen.ints().range(1, 5))
-                .generate(field("stationCode"), gen -> gen.oneOf("OKT", "BLR", "STR", "UFA", "KZN", "SBY"))
-                .ignore(field("station"))
-                .ignore(field("id"))
-                .create();
+        for (String stationCode : stationCodes) {
+            Weather weather = Instancio.of(Weather.class)
+                    .generate(field("tempC"), gen -> gen.ints().range(-40, 45))
+                    .generate(field("windKph"), gen -> gen.ints().range(0, 20))
+                    .generate(field("windDir"), gen -> gen.oneOf("S", "SE", "E", "NE", "N", "NW", "W", "SW"))
+                    .generate(field("cloudOkt"), gen -> gen.ints().range(0, 8))
+                    .generate(field("cloudType"), gen -> gen.oneOf("Cb", "Cu", "St", "Cs", "As", "Ns", "Ci", "Cc", "Ac", "Sc"))
+                    .generate(field("conditionsText"), gen -> gen.oneOf("rain", "sun", "snow", "dust", "cloud"))
+                    .generate(field("conditionCode"), gen -> gen.ints().range(1, 5))
+                    .set(field("createdAt"), LocalDateTime.now())
+                    .set(field("stationCode"), stationCode)
+                    .ignore(field("station"))
+                    .ignore(field("id"))
+                    .create();
 
-        weatherDao.save(weather).subscribe();
-        log.info("TABLE Weather ON Postgres UPDATED");
-        log.info("KEY Weather ON Redis UPDATED");
-        weatherDao.findAll().flatMap(weatherRedisDao::save).subscribe();
-        return Flux.just(1L);
+            weatherDao.save(weather).subscribe();
+            log.info("TABLE Weather ON Postgres UPDATED");
+            weatherRedisDao.saveWeather("weather",
+                            weather.getStationCode(),
+                            weather
+                    )
+                    .subscribe();
+            log.info("KEY Weather ON Redis UPDATED");
+        }
+        return Mono.when();
     }
 
     @PostConstruct
-    public Flux<Long> stationUpdate() {
+    public Mono<Void> stationUpdate() {
+        //TODO удалить
+        weatherDao.deleteAll().subscribe();
+        stationDao.deleteAll().subscribe();
+
         stationRedisDao.evict().subscribe();
         stationDao.saveAll(stationList()).subscribe();
         log.info("TABLE Stations ON Postgres UPDATED");
         log.info("KEY Stations ON Redis UPDATED");
         stationList().flatMap(stationRedisDao::save).subscribe();
-        return Flux.just(1L);
+        return Mono.when();
     }
 
     private Flux<Station> stationList() {
@@ -94,6 +109,4 @@ public class DataUpdater {
 
         return Flux.just(stationBlr, stationKzn, stationOkt, stationUfa, stationStr, stationSby);
     }
-
-
 }

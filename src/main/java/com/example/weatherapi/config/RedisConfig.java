@@ -1,5 +1,7 @@
 package com.example.weatherapi.config;
 
+import com.example.weatherapi.entity.ApiKey;
+import com.example.weatherapi.entity.RateLimiter;
 import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,4 +48,22 @@ public class RedisConfig {
         RedisSerializationContext<String, Weather> context = builder.value(valueSerializer).build();
         return new ReactiveRedisTemplate<>(factory, context);
     }
+
+    @Bean
+    public ReactiveRedisOperations<String, ApiKey> apiKeyRedisTemplate(ReactiveRedisConnectionFactory factory) {
+        StringRedisSerializer keySerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer<ApiKey> valueSerializer = new Jackson2JsonRedisSerializer<>(ApiKey.class);
+        RedisSerializationContext.RedisSerializationContextBuilder<String, ApiKey> builder = RedisSerializationContext.newSerializationContext(keySerializer);
+        RedisSerializationContext<String, ApiKey> context = builder.value(valueSerializer).build();
+        return new ReactiveRedisTemplate<>(factory, context);
+    }
+    @Bean
+    public ReactiveRedisOperations<String, RateLimiter> rateLimitRedisTemplate(ReactiveRedisConnectionFactory factory) {
+        StringRedisSerializer keySerializer = new StringRedisSerializer();
+        Jackson2JsonRedisSerializer<RateLimiter> valueSerializer = new Jackson2JsonRedisSerializer<>(RateLimiter.class);
+        RedisSerializationContext.RedisSerializationContextBuilder<String, RateLimiter> builder = RedisSerializationContext.newSerializationContext(keySerializer);
+        RedisSerializationContext<String, RateLimiter> context = builder.value(valueSerializer).build();
+        return new ReactiveRedisTemplate<>(factory, context);
+    }
+
 }
