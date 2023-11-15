@@ -1,33 +1,40 @@
 package com.example.weatherapi.repository;
 
-import com.example.weatherapi.config.RedisTestConfiguration;
 import com.example.weatherapi.entity.Weather;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.data.redis.core.ReactiveRedisOperations;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import redis.embedded.RedisServer;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = RedisTestConfiguration.class)
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WeatherRedisDaoTest {
 
     @Autowired
     private WeatherRedisDao weatherRedisDao;
 
     @Autowired
-    @Qualifier("weatherTest")
-    private ReactiveRedisTemplate<String, Weather> redisTemplate;
+    private ReactiveRedisOperations<String, Weather> redisOperations;
+    RedisServer redisServer = new RedisServer(6378);
+
+    @BeforeAll
+    public void startUpRedisServer() {
+        redisServer.start();
+    }
+
+    @AfterAll
+    public void shutDownRedisServer() {
+        redisServer.stop();
+    }
 
     @Test
     void saveWeather() {
@@ -35,8 +42,8 @@ class WeatherRedisDaoTest {
                 .id(UUID.randomUUID().toString())
                 .createdAt(LocalDateTime.now())
                 .build();
-        Mono<Void> result = weatherRedisDao.saveWeather(any(String.class), any(String.class), weather);
-        StepVerifier.create(result)
+
+        StepVerifier.create(weatherRedisDao.saveWeather(weather))
                 .verifyComplete();
     }
 
@@ -44,15 +51,29 @@ class WeatherRedisDaoTest {
     void findByStationCode() {
         Weather weather = Weather.builder()
                 .id(UUID.randomUUID().toString())
-                .stationCode("UFA")
+                .stationCode("testCode")
                 .createdAt(LocalDateTime.now())
                 .build();
-        Flux<Weather> resultGet = redisTemplate.opsForValue().set("weather", weather).thenMany(weatherRedisDao.findByStationCode(any(String.class)));
+        Flux<Weather> resultGet = redisOperations.opsForValue().set("testCode", weather).thenMany(weatherRedisDao.findByStationCode("testCode"));
 
         StepVerifier.create(resultGet)
                 .expectNextMatches(x -> x.getStationCode().equals(weather.getStationCode())
                         && x.getId().equals(weather.getId())
                         && x.getCreatedAt().equals(weather.getCreatedAt()))
+                .verifyComplete();
+    }
+
+    @Test
+    void findByWrongStationCode() {
+        Weather weather = Weather.builder()
+                .id(UUID.randomUUID().toString())
+                .stationCode("testCode")
+                .createdAt(LocalDateTime.now())
+                .build();
+        Flux<Weather> resultGet = redisOperations.opsForValue().set("testCode", weather).thenMany(weatherRedisDao.findByStationCode("wrongCode"));
+
+        StepVerifier.create(resultGet)
+                .expectNextCount(0L)
                 .verifyComplete();
     }
 }

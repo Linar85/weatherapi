@@ -31,7 +31,7 @@ public class AuthController {
     @PostMapping("/register")
     public Mono<UserDto> register(@RequestBody UserDto userDto) {
         User user = userMapper.map(userDto);
-        return userService.register(user).map(userMapper::map);
+        return userService.register(user);
     }
 
     @PostMapping("/login")

@@ -49,10 +49,7 @@ public class StationService {
                         weatherRedisDao.findByStationCode(stationCode)
                                 .switchIfEmpty(weatherDao.findAllByStationCode(stationCode))
                                 .map(weather -> {
-                                    weatherRedisDao.saveWeather("weather",
-                                                    stationCode,
-                                                    weather)
-                                            .subscribe();
+                                    weatherRedisDao.saveWeather(weather).subscribe();
                                     return weather;
                                 })
                                 .collectList())

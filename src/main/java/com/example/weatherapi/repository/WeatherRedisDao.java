@@ -16,8 +16,8 @@ public class WeatherRedisDao implements Serializable {
 
     private final ReactiveRedisOperations<String, Weather> redisTemplate;
 
-    public Mono<Void> saveWeather(String about, String stationCode, Weather weather) {
-        String key = about + "#" + stationCode + "#" + weather.getCreatedAt().format(DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH"));
+    public Mono<Void> saveWeather(Weather weather) {
+        String key = "weather#" + weather.getStationCode() + "#" + weather.getCreatedAt().format(DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH"));
         return this.redisTemplate.opsForValue().set(key, weather).then();
     }
 

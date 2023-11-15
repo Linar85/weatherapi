@@ -1,42 +1,49 @@
 package com.example.weatherapi.controller;
 
-import com.example.weatherapi.WeatherapiApplication;
 import com.example.weatherapi.dto.UserDto;
 import com.example.weatherapi.entity.User;
+import com.example.weatherapi.entity.UserRole;
+import com.example.weatherapi.filters.ApiKeyFilter;
 import com.example.weatherapi.mapper.ApiKeyMapper;
 import com.example.weatherapi.mapper.UserMapper;
-import com.example.weatherapi.repository.ApiKeyRedisDao;
-import com.example.weatherapi.repository.RateLimiterDao;
-import com.example.weatherapi.repository.UserDao;
 import com.example.weatherapi.security.SecurityService;
 import com.example.weatherapi.service.ApiKeyService;
 import com.example.weatherapi.service.UserService;
-import com.example.weatherapi.utils.RateBuckets;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest(controllers = AuthController.class, excludeAutoConfiguration = ReactiveSecurityAutoConfiguration.class)
+@WebFluxTest(controllers = AuthController.class, useDefaultFilters = false
+//        ,excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {ApiKeyFilter.class})
+)
+@ImportAutoConfiguration
 class AuthControllerTest {
+
+    @Autowired
+    private WebTestClient webClient;
+
+    @Autowired
+    ApplicationContext context;
 
     @MockBean
     SecurityService securityService;
@@ -49,34 +56,50 @@ class AuthControllerTest {
     @MockBean
     ApiKeyMapper apiKeyMapper;
     @MockBean
-//    ApiKeyRedisDao apiKeyRedisDao;
-//    @MockBean
-//    RateBuckets rateBuckets;
-//    @MockBean
-//    RateLimiterDao rateLimiterDao;
-//    @SpyBean
-//    PasswordEncoder passwordEncoder;
-//    @MockBean
-//    UserDao userDao;
-    @Autowired
-    private WebTestClient webClient;
+    ApiKeyFilter apiKeyFilter;
+//    @Autowired
+//    AuthController authController;
+
+    @BeforeEach
+    public void setup() {
+//        this.webClient = WebTestClient
+//                .bindToApplicationContext(this.context)
+//                // add Spring Security test Support
+//                .apply(springSecurity())
+//                .configureClient()
+//                .filter(basicAuthentication("testUser", "testPassword"))
+//                .build();
+
+//        webClient = WebTestClient.bindToController(authController)
+//                .webFilter(new SecurityContextServerWebExchangeWebFilter())
+//                .webFilter(apiKeyFilter)
+//                .apply(springSecurity())
+//                .build();
+    }
 
     @Test
+    @WithMockUser
     void register() {
 
         UserDto userDto = new UserDto();
         userDto.setUsername("testUser");
         userDto.setPassword("testPassword");
+        userDto.setFirstName("testFirstName");
+        userDto.setLastName("testLastName");
 
         User user = User.builder()
+                .id(1L)
                 .username("testUser")
+                .role(UserRole.USER)
                 .password("testPassword")
+                .firstName("testFirstName")
+                .lastName("testLastName")
+                .enabled(true)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
-
-        Mockito.when(userMapper.map(any(UserDto.class))).thenReturn(user);
-        Mockito.when(userMapper.map(any(User.class))).thenReturn(userDto);
-        Mockito.when(userService.register(any(User.class))).thenReturn(Mono.just(user));
+        Mockito.when(userService.register(any(User.class))).thenReturn(Mono.just(userDto));
 
         webClient.post()
                 .uri("/api/register")

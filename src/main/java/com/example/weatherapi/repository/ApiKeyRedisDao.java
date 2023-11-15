@@ -18,7 +18,8 @@ public class ApiKeyRedisDao implements Serializable {
 
     public Mono<Void> save(ApiKey apiKey) {
         String key = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
-        redisTemplate.keys("apikey#" + apiKey.getUserId() + "*").flatMap(redisTemplate::delete).subscribe();
+        redisTemplate.keys("apikey#" + apiKey.getUserId() + "*")
+                .flatMap(redisTemplate::delete).subscribe();
         return this.redisTemplate.opsForValue().set(key, apiKey).then();
     }
 

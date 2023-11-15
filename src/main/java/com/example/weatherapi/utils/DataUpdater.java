@@ -51,11 +51,7 @@ public class DataUpdater {
 
             weatherDao.save(weather).subscribe();
             log.info("TABLE Weather ON Postgres UPDATED");
-            weatherRedisDao.saveWeather("weather",
-                            weather.getStationCode(),
-                            weather
-                    )
-                    .subscribe();
+            weatherRedisDao.saveWeather(weather).subscribe();
             log.info("KEY Weather ON Redis UPDATED");
         }
         return Mono.when();

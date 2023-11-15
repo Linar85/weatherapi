@@ -18,8 +18,8 @@ public class StationRedisDao implements Serializable {
 
     private final ReactiveRedisOperations<String, Station> redisTemplate;
 
-    public Flux<Long> save(Station station) {
-        return this.redisTemplate.opsForList().leftPush(KEY, station).flux();
+    public Mono<Void> save(Station station) {
+        return this.redisTemplate.opsForList().leftPush(KEY, station).then();
     }
 
     public Flux<Station> findAll() {
