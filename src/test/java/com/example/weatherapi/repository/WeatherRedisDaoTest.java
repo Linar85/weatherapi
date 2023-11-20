@@ -1,22 +1,24 @@
 package com.example.weatherapi.repository;
 
 import com.example.weatherapi.entity.Weather;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-import redis.embedded.RedisServer;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers(disabledWithoutDocker = true)
 class WeatherRedisDaoTest {
 
     @Autowired
@@ -24,16 +26,14 @@ class WeatherRedisDaoTest {
 
     @Autowired
     private ReactiveRedisOperations<String, Weather> redisOperations;
-    RedisServer redisServer = new RedisServer(6378);
 
-    @BeforeAll
-    public void startUpRedisServer() {
-        redisServer.start();
-    }
+    @Container
+    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
 
-    @AfterAll
-    public void shutDownRedisServer() {
-        redisServer.stop();
+    @DynamicPropertySource
+    private static void registerRedisProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
     }
 
     @Test

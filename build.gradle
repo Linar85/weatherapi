@@ -55,6 +55,8 @@ dependencies {
     testImplementation group: 'org.testcontainers', name: 'r2dbc', version: '1.19.2'
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.2'
     testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.19.2'
+    implementation group: 'com.redis.testcontainers', name: 'testcontainers-redis-junit-jupiter', version: '1.4.6'
+
 }
 
 tasks.named('test') {

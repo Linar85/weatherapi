@@ -48,10 +48,14 @@ public class DataUpdater {
                     .ignore(field("id"))
                     .create();
 
-            return weatherDao.save(weather)
-                    .doOnSuccess(l -> log.info("TABLE Weather ON Postgres UPDATED"))
-                    .then(weatherRedisDao.saveWeather(weather))
-                    .doOnSuccess(l -> log.info("KEY Weather ON Redis UPDATED"));
+//            return weatherDao.save(weather)
+//                    .doOnSuccess(l -> log.info("TABLE Weather ON Postgres UPDATED"))
+//                    .then(weatherRedisDao.saveWeather(weather))
+//                    .doOnSuccess(l -> log.info("KEY Weather ON Redis UPDATED"));
+            weatherDao.save(weather).subscribe();
+            log.info("TABLE Weather ON Postgres UPDATED");
+            weatherRedisDao.saveWeather(weather).subscribe();
+            log.info("KEY Weather ON Redis UPDATED");
         }
         return Mono.when();
     }

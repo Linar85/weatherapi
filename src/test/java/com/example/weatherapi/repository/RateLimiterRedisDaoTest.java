@@ -2,20 +2,24 @@ package com.example.weatherapi.repository;
 
 import com.example.weatherapi.entity.ApiKey;
 import com.example.weatherapi.entity.RateLimiter;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import reactor.test.StepVerifier;
-import redis.embedded.RedisServer;
+
+import java.util.Objects;
 
 import java.util.Objects;
 
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers(disabledWithoutDocker = true)
 class RateLimiterRedisDaoTest {
 
     @Autowired
@@ -23,7 +27,15 @@ class RateLimiterRedisDaoTest {
 
     @Autowired
     private ReactiveRedisOperations<String, RateLimiter> redisOperations;
-    RedisServer redisServer = new RedisServer(6378);
+
+    @Container
+    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
+
+    @DynamicPropertySource
+    private static void registerRedisProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+    }
 
     RateLimiter rateLimiter = RateLimiter.builder()
             .userId(1L)
@@ -39,16 +51,6 @@ class RateLimiterRedisDaoTest {
             .build();
 
     String key = "ratelimiter#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
-
-    @BeforeAll
-    public void startUpRedisServer() {
-        redisServer.start();
-    }
-
-    @AfterAll
-    public void shutDownRedisServer() {
-        redisServer.stop();
-    }
 
     @Test
     void save() {

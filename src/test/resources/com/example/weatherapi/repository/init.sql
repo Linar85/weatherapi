@@ -1,7 +1,7 @@
 -- truncate table weather_api.stations cascade ;
 -- truncate table weather_api.weather cascade ;
 -- truncate table weather_api.apikeys cascade ;
-truncate table weather_api.users cascade ;
+-- truncate table weather_api.users cascade ;
 drop table if exists weather_api.weather;
 drop table if exists weather_api.stations;
 drop table if exists weather_api.ratelimits;

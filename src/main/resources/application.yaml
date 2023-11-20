@@ -30,13 +30,13 @@ limits:
     refillGreedyTokens: 5
     refillGreedyDurationSeconds: 5
 
----
-
-spring:
-  profiles: test
-  r2dbc:
-    url: r2dbc:tc:postgresql:///testdb?TC_IMAGE_TAG=14-alpine
-
+#---
+#
+#spring:
+#  profiles: test
+#  r2dbc:
+#    url: r2dbc:tc:postgresql:///testdb?TC_IMAGE_TAG=14-alpine
+#
 
 
 
