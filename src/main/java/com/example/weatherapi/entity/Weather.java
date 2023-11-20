@@ -14,7 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Table(name = "weather", schema = "weather_api")
+@Table(name = "weather")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)

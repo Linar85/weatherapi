@@ -13,7 +13,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
-@Table(name = "apikeys", schema = "weather_api")
+@Table(name = "apikeys")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

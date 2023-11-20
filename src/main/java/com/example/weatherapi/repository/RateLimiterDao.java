@@ -7,6 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface RateLimiterDao extends R2dbcRepository<RateLimiter, Long> {
     Mono<RateLimiter> findByUserId(Long userId);
-    @Query("select * from weather_api.ratelimits r join weather_api.apikeys a on r.user_id=a.user_id where a.api_key=?1")
+    @Query("select * from ratelimits r join apikeys a on r.user_id=a.user_id where a.api_key=?1")
     Mono<RateLimiter> findByKey(String key);
 }

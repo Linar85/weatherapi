@@ -9,8 +9,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
 import java.util.List;
-
-@Table(name = "stations", schema = "weather_api")
+@Table(name = "stations")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

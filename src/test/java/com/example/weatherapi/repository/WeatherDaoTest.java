@@ -19,17 +19,17 @@ import static java.lang.String.format;
 @DataR2dbcTest
 @ExtendWith(SpringExtension.class)
 @Testcontainers
-class StationDaoTest {
+class WeatherDaoTest {
 
     @Autowired
-    StationDao stationDao;
+    WeatherDao weatherDao;
 
     @Container
     public static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16")
             .withDatabaseName("weatherapi")
             .withUsername("postgres")
             .withPassword("1234")
-            .withInitScript("initTest.sql");
+            .withInitScript("initWeathers.sql");
 
     @BeforeAll
     static void runContainer() {
@@ -48,27 +48,20 @@ class StationDaoTest {
         registry.add("spring.r2dbc.username", postgreSQLContainer::getUsername);
         registry.add("spring.r2dbc.password", postgreSQLContainer::getPassword);
     }
-    @Test
-    void findByWrongStationCode() {
 
-        StepVerifier.create(stationDao.findByStationCode("qwe"))
-                .expectNextCount(0L)
+    @Test
+    void findAllByStationCodeSeveral() {
+        StepVerifier.create(weatherDao.findAllByStationCode("UFA"))
+                .expectNextCount(2L)
                 .verifyComplete();
     }
-    @Test
-    void findByStationCode() {
 
-        StepVerifier.create(stationDao.findByStationCode("OKT"))
-//                .expectNextCount(1L)
-                .expectNextMatches(x -> x.getStationCode().equals("OKT")
-                        && x.getCountry().equals("RF"))
-                .verifyComplete();
-    }
     @Test
-    void findByCountByStationCode() {
-
-        StepVerifier.create(stationDao.findByStationCode("OKT"))
-                .expectNextCount(1L)
+    void findAllByStationCodeSingle() {
+        StepVerifier.create(weatherDao.findAllByStationCode("STR"))
+                .expectNextMatches(wth -> wth.getStationCode().equals("STR")
+                        && wth.getConditionsText().equals("rain")
+                        && wth.getCloudType().equals("FF"))
                 .verifyComplete();
     }
 }

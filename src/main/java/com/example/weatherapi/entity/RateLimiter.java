@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table(name = "ratelimits", schema = "weather_api")
+@Table(name = "ratelimits")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)

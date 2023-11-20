@@ -38,7 +38,7 @@ public class ApiKeyFilter implements WebFilter {
         String actualApiKeyValue = exchange.getRequest().getHeaders().getFirst(HEADER);
 
         if (excludedUri.contains(uriForCheck)) {
-            if (buckets.usersLimits.containsKey(actualApiKeyValue)) {
+            if (actualApiKeyValue != null && buckets.usersLimits.containsKey(actualApiKeyValue)) {
                 if (checkBuckets(exchange, actualApiKeyValue))
                     return Mono.error(new UnauthorizedException("request limit exceeded"));
             } else {
@@ -56,13 +56,13 @@ public class ApiKeyFilter implements WebFilter {
                         } else {
                             log.info("Creating new bucket...");
                             rateLimiterRedisDao.findByApiKey(actualApiKeyValue).switchIfEmpty(
-                                    rateLimiterDao.findByKey(actualApiKeyValue))
-                                            .map(limiter -> {
-                                                rateLimiterRedisDao.save(apiKey, limiter).subscribe();
-                                                buckets.usersLimits.put(actualApiKeyValue, buckets.getBucket(limiter.getBucketCapacity(), limiter.getRefillGreedyTokens(), limiter.getRefillGreedyDurationSeconds()));
-                                                return limiter;
-                                            })
-                                            .subscribe();
+                                            rateLimiterDao.findByKey(actualApiKeyValue))
+                                    .map(limiter -> {
+                                        rateLimiterRedisDao.save(apiKey, limiter).subscribe();
+                                        buckets.usersLimits.put(actualApiKeyValue, buckets.getBucket(limiter.getBucketCapacity(), limiter.getRefillGreedyTokens(), limiter.getRefillGreedyDurationSeconds()));
+                                        return limiter;
+                                    })
+                                    .subscribe();
                         }
                         return chain.filter(exchange);
                     });
