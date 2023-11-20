@@ -52,14 +52,10 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation group: 'org.testcontainers', name: 'r2dbc', version: '1.19.2'
+    testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.2'
+    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.19.2'
 }
-//configurations {
-//    all {
-//        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
-//        exclude group: 'ch.qos.logback', module: 'logback-classic'
-//        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
-//    }
-//}
 
 tasks.named('test') {
     useJUnitPlatform()

@@ -42,9 +42,7 @@ public class UserService {
                     .refillGreedyTokens(us.getRole().refillGreedyTokens)
                     .refillGreedyDurationSeconds(us.getRole().refillGreedyDurationSeconds)
                     .userId(us.getId())
-                    .build()).doOnSuccess(rate -> {
-                log.info("recorded" + rate);
-            }).subscribe();
+                    .build()).doOnSuccess(rate -> log.info("recorded" + rate)).subscribe();
         });
     }
 
@@ -54,9 +52,5 @@ public class UserService {
 
     public Mono<User> getUserByUsername(String username) {
         return userDao.findByUsername(username);
-    }
-
-    public Mono<ApiKey> getApiKey() {
-        return null;
     }
 }

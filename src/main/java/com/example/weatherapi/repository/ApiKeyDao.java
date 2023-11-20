@@ -7,6 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface ApiKeyDao extends R2dbcRepository<ApiKey, Long> {
 
-    @Query("select * from weather_api.weather group by user_id having ")
-    Mono<ApiKey> findByApiKey(String key);
+//    @Query("select * from weather_api.weather group by user_id having ")
+//    Mono<ApiKey> findByApiKey(String key);
 }

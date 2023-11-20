@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApiKeyFilter implements WebFilter {
 
-    private final String headerName = "X-api-key";
+    private final String HEADER = "X-API-key";
 
     private final ApiKeyRedisDao apiKeyRedisDao;
     private final RateLimiterRedisDao rateLimiterRedisDao;
@@ -33,11 +33,11 @@ public class ApiKeyFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-        String path = exchange.getRequest().getURI().getPath();
-        List<String> filterUri = List.of("/api/get-api-key", "/api/register", "/api/login");
-        boolean b = filterUri.contains(path);
-        String actualApiKeyValue = exchange.getRequest().getHeaders().getFirst(headerName);
-        if (b) {
+        String uriForCheck = exchange.getRequest().getURI().getPath();
+        List<String> excludedUri = List.of("/api/get-api-key", "/api/register", "/api/login");
+        String actualApiKeyValue = exchange.getRequest().getHeaders().getFirst(HEADER);
+
+        if (excludedUri.contains(uriForCheck)) {
             if (buckets.usersLimits.containsKey(actualApiKeyValue)) {
                 if (checkBuckets(exchange, actualApiKeyValue))
                     return Mono.error(new UnauthorizedException("request limit exceeded"));

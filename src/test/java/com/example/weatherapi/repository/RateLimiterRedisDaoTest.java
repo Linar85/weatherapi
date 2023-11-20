@@ -12,6 +12,8 @@ import org.springframework.data.redis.core.ReactiveRedisOperations;
 import reactor.test.StepVerifier;
 import redis.embedded.RedisServer;
 
+import java.util.Objects;
+
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RateLimiterRedisDaoTest {
@@ -58,10 +60,10 @@ class RateLimiterRedisDaoTest {
     void findByApiKey() {
         StepVerifier.create(redisOperations.opsForValue().set(key, rateLimiter)
                         .thenMany(rateLimiterRedisDao.findByApiKey(apiKey.getApiKey())))
-                .expectNextMatches(k -> k.getUserId() == rateLimiter.getUserId()
-                        && k.getBucketCapacity() == rateLimiter.getBucketCapacity()
-                        && k.getRefillGreedyTokens() == rateLimiter.getRefillGreedyTokens()
-                        && k.getRefillGreedyDurationSeconds() == rateLimiter.getRefillGreedyDurationSeconds())
+                .expectNextMatches(k -> Objects.equals(k.getUserId(), rateLimiter.getUserId())
+                        && Objects.equals(k.getBucketCapacity(), rateLimiter.getBucketCapacity())
+                        && Objects.equals(k.getRefillGreedyTokens(), rateLimiter.getRefillGreedyTokens())
+                        && Objects.equals(k.getRefillGreedyDurationSeconds(), rateLimiter.getRefillGreedyDurationSeconds()))
                 .verifyComplete();
     }
 
@@ -69,6 +71,7 @@ class RateLimiterRedisDaoTest {
     void findByWrongKey() {
         StepVerifier.create(redisOperations.opsForValue().set(key, rateLimiter)
                         .thenMany(rateLimiterRedisDao.findByApiKey("non-existent")))
+                .expectNextCount(0L)
                 .verifyComplete();
     }
 }

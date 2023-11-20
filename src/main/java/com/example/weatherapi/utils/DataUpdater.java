@@ -1,6 +1,5 @@
 package com.example.weatherapi.utils;
 
-import com.example.weatherapi.entity.RateLimiter;
 import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
 import com.example.weatherapi.repository.*;
@@ -49,20 +48,16 @@ public class DataUpdater {
                     .ignore(field("id"))
                     .create();
 
-            weatherDao.save(weather).subscribe();
-            log.info("TABLE Weather ON Postgres UPDATED");
-            weatherRedisDao.saveWeather(weather).subscribe();
-            log.info("KEY Weather ON Redis UPDATED");
+            return weatherDao.save(weather)
+                    .doOnSuccess(l -> log.info("TABLE Weather ON Postgres UPDATED"))
+                    .then(weatherRedisDao.saveWeather(weather))
+                    .doOnSuccess(l -> log.info("KEY Weather ON Redis UPDATED"));
         }
         return Mono.when();
     }
 
     @PostConstruct
     public Mono<Void> stationUpdate() {
-        //TODO удалить
-        weatherDao.deleteAll().subscribe();
-        stationDao.deleteAll().subscribe();
-
         stationRedisDao.evict().subscribe();
         stationDao.saveAll(stationList()).subscribe();
         log.info("TABLE Stations ON Postgres UPDATED");

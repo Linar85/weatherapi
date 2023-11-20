@@ -28,22 +28,20 @@ public class ApiKeyService {
         CustomPrincipal customPrincipal = (CustomPrincipal) authentication.getPrincipal();
         return userService.getUserByUsername(customPrincipal.getName())
                 .flatMap(user -> {
-                    user.setApiKey(ApiKey.builder()
+                    ApiKey apiKey = ApiKey.builder()
                             .apiKey(UUID.randomUUID().toString())
                             .userId(customPrincipal.getId())
                             .created(LocalDateTime.now())
-                            .build());
-                    return Mono.just(user.getApiKey());
-                }).flatMap(apiKey -> {
-                    rateLimiterDao.findByUserId(apiKey.getUserId())
+                            .build();
+                    user.setApiKey(apiKey);
+                    return rateLimiterDao.findByUserId(user.getId())
                             .flatMap(rateLimiter -> {
                                 apiKey.setRateLimiter(rateLimiter);
-                                apiKeyDao.save(apiKey).subscribe();
-                                apiKeyRedisDao.save(apiKey).subscribe();
-                                rateLimiterRedisDao.save(apiKey, rateLimiter).subscribe();
-                                return Mono.when();
-                            }).subscribe();
-                    return Mono.just(apiKey);
+                                return apiKeyDao.save(apiKey)
+                                        .then(apiKeyRedisDao.save(apiKey))
+                                        .then(rateLimiterRedisDao.save(apiKey, rateLimiter))
+                                        .then(Mono.just(apiKey));
+                            });
                 });
     }
 }

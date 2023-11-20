@@ -42,12 +42,14 @@ public class StationService {
         return Mono.zip(stationRedisDao.findByStationCode(stationCode)
                                 .switchIfEmpty(
                                         stationDao.findByStationCode(stationCode)
+                                                .publishOn(Schedulers.boundedElastic())
                                                 .map(st -> {
                                                     stationRedisDao.save(st).subscribe();
                                                     return st;
                                                 })),
                         weatherRedisDao.findByStationCode(stationCode)
                                 .switchIfEmpty(weatherDao.findAllByStationCode(stationCode))
+                                .publishOn(Schedulers.boundedElastic())
                                 .map(weather -> {
                                     weatherRedisDao.saveWeather(weather).subscribe();
                                     return weather;

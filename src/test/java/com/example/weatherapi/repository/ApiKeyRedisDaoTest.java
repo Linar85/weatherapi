@@ -17,7 +17,7 @@ class ApiKeyRedisDaoTest {
 
     @Autowired
     private ReactiveRedisOperations<String, ApiKey> redisOperations;
-    RedisServer redisServer = new RedisServer(6378);
+    RedisServer redisServer = new RedisServer(6371);
 
     @BeforeAll
     public void setUp() {

@@ -20,7 +20,7 @@ create table if not exists weather_api.users
     enabled boolean not null default false,
     created_at  timestamp,
     updated_at  timestamp
-);
+    );
 
 create table if not exists weather_api.apikeys
 (
@@ -29,7 +29,7 @@ create table if not exists weather_api.apikeys
     api_key varchar(256) unique,
     created timestamp,
     constraint fk_user foreign key (user_Id) references weather_api.users (id)
-);
+    );
 
 create table if not exists weather_api.ratelimits
 (
@@ -39,7 +39,7 @@ create table if not exists weather_api.ratelimits
     refill_greedy_duration_seconds integer,
     user_id integer unique,
     constraint fk_user foreign key (user_id) references weather_api.users (id)
-);
+    );
 
 
 
@@ -49,7 +49,7 @@ create table if not exists weather_api.stations
     name    varchar(256),
     station_code varchar(3) unique,
     country varchar(256)
-);
+    );
 
 create table if not exists weather_api.weather
 (
@@ -64,4 +64,4 @@ create table if not exists weather_api.weather
     station_code    varchar(3),
     created_at      timestamp,
     constraint fk_weather foreign key (station_code) references weather_api.stations (station_code)
-);
+    );

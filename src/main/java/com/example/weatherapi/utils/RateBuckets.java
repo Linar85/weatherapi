@@ -6,14 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class RateBuckets {
 
-    public Map<String, Bucket> usersLimits = new LinkedHashMap<>();
+    public Map<String, Bucket> usersLimits = new ConcurrentHashMap<>();
 
     public Bucket getBucket(Integer capacity, Integer refillGreedyTokens, Integer refillGreedyDuration) {
 

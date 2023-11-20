@@ -1,12 +1,12 @@
 spring:
   r2dbc:
-    url: r2dbc:pool:postgres://localhost:5432/weatherapi
+    url: r2dbc:tc:postgresql:///weatherapi
     username: postgres
     password: 1234
   data:
     redis:
       host: localhost
-      port: 6370
+      port: 6371
 jwt:
   password:
     encoder:

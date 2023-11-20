@@ -4,7 +4,6 @@ import com.example.weatherapi.entity.ApiKey;
 import com.example.weatherapi.entity.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
