@@ -1,11 +1,13 @@
 package com.example.weatherapi.repository;
 
 import com.example.weatherapi.entity.Station;
+import com.example.weatherapi.utils.DataUpdater;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,15 +23,16 @@ class StationRedisDaoTest {
 
     @Autowired
     private StationRedisDao stationRedisDao;
-
     @Autowired
     private ReactiveRedisOperations<String, Station> redisOperations;
+    @MockBean
+    DataUpdater dataUpdater;
     @Container
-    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
+    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:latest")).withExposedPorts(6379);
     @DynamicPropertySource
     private static void registerRedisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
-        registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
     }
     String KEY = "stations";
     Station station1 = Station.builder()

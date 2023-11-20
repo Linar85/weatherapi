@@ -16,8 +16,6 @@ import reactor.test.StepVerifier;
 
 import java.util.Objects;
 
-import java.util.Objects;
-
 @SpringBootTest
 @Testcontainers(disabledWithoutDocker = true)
 class RateLimiterRedisDaoTest {
@@ -29,14 +27,13 @@ class RateLimiterRedisDaoTest {
     private ReactiveRedisOperations<String, RateLimiter> redisOperations;
 
     @Container
-    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
+    private static final RedisContainer REDIS_CONTAINER = new RedisContainer(DockerImageName.parse("redis:latest")).withExposedPorts(6379);
 
     @DynamicPropertySource
     private static void registerRedisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
-        registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
     }
-
     RateLimiter rateLimiter = RateLimiter.builder()
             .userId(1L)
             .bucketCapacity(2)

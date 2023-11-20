@@ -1,10 +1,12 @@
 package com.example.weatherapi.repository;
 
 import com.example.weatherapi.entity.Weather;
+import com.example.weatherapi.utils.DataUpdater;
 import com.redis.testcontainers.RedisContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -23,7 +25,8 @@ class WeatherRedisDaoTest {
 
     @Autowired
     private WeatherRedisDao weatherRedisDao;
-
+    @MockBean
+    DataUpdater dataUpdater;
     @Autowired
     private ReactiveRedisOperations<String, Weather> redisOperations;
 
@@ -32,8 +35,8 @@ class WeatherRedisDaoTest {
 
     @DynamicPropertySource
     private static void registerRedisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
-        registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
     }
 
     @Test
