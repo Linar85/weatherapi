@@ -20,16 +20,16 @@ public class ApiKeyRedisDao implements Serializable {
         String key = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
         redisTemplate.keys("apikey#" + apiKey.getUserId() + "*")
                 .flatMap(redisTemplate::delete).subscribe();
-        return this.redisTemplate.opsForValue().set(key, apiKey).then();
+        return redisTemplate.opsForValue().set(key, apiKey).then();
     }
 
     public Mono<ApiKey> findByUserId(Long userId) {
         return redisTemplate.keys("*" + userId + "*")
-                .flatMap(key -> this.redisTemplate.opsForValue().get(key)).next();
+                .flatMap(key -> redisTemplate.opsForValue().get(key)).next();
     }
 
     public Mono<ApiKey> findByKey(String apiKey) {
         return redisTemplate.keys("apikey*" + apiKey + "*")
-                .flatMap(key -> this.redisTemplate.opsForValue().get(key)).next();
+                .flatMap(key -> redisTemplate.opsForValue().get(key)).next();
     }
 }

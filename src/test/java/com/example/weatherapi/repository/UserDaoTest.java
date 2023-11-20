@@ -15,7 +15,6 @@ import org.testcontainers.lifecycle.Startables;
 import reactor.test.StepVerifier;
 
 import static java.lang.String.format;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataR2dbcTest
 @ExtendWith(SpringExtension.class)
@@ -30,7 +29,7 @@ class UserDaoTest {
             .withDatabaseName("weatherapi")
             .withUsername("postgres")
             .withPassword("1234")
-            .withInitScript("usersTest.sql");
+            .withInitScript("scripts/usersTest.sql");
 
     @BeforeAll
     static void runContainer() {

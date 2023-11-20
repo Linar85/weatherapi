@@ -29,7 +29,7 @@ class WeatherDaoTest {
             .withDatabaseName("weatherapi")
             .withUsername("postgres")
             .withPassword("1234")
-            .withInitScript("initWeathers.sql");
+            .withInitScript("scripts/initWeathers.sql");
 
     @BeforeAll
     static void runContainer() {
