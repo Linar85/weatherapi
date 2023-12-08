@@ -9,9 +9,9 @@ import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StationDto {
-    private String id;
+//    private String id;
     private String stationCode;
     private String name;
     private String country;
-    private List<Weather> weathers;
+    private Weather weather;
 }

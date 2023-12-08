@@ -2,17 +2,22 @@ package com.example.weatherapi.utils;
 
 import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
-import com.example.weatherapi.repository.*;
-import jakarta.annotation.PostConstruct;
+import com.example.weatherapi.repository.StationDao;
+import com.example.weatherapi.repository.StationRedisDao;
+import com.example.weatherapi.repository.WeatherDao;
+import com.example.weatherapi.repository.WeatherRedisDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.instancio.Instancio;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.instancio.Select.field;
@@ -26,12 +31,13 @@ public class DataUpdater {
     private final WeatherRedisDao weatherRedisDao;
     private final StationDao stationDao;
     private final StationRedisDao stationRedisDao;
-    private final RateLimiterDao rateLimiterDao;
+    private static List<String> stationCodes = new ArrayList<>();
 
-    @Scheduled(fixedRate = 900000)
+    @Scheduled(initialDelay = 5000, fixedRate = 3 * 60 * 1000)
 //    @Scheduled(cron = "0 0 0,3,6,9,12,15,18,21 * * *")
     public Mono<Void> weatherUpdate() {
-        List<String> stationCodes = List.of("OKT", "BLR", "STR", "UFA", "KZN", "SBY");
+
+        weatherRedisDao.evict().subscribe();
 
         for (String stationCode : stationCodes) {
             Weather weather = Instancio.of(Weather.class)
@@ -48,60 +54,38 @@ public class DataUpdater {
                     .ignore(field("id"))
                     .create();
 
-//            return weatherDao.save(weather)
-//                    .doOnSuccess(l -> log.info("TABLE Weather ON Postgres UPDATED"))
-//                    .then(weatherRedisDao.saveWeather(weather))
-//                    .doOnSuccess(l -> log.info("KEY Weather ON Redis UPDATED"));
-            weatherDao.save(weather).subscribe();
-            log.info("TABLE Weather ON Postgres UPDATED");
-            weatherRedisDao.saveWeather(weather).subscribe();
-            log.info("KEY Weather ON Redis UPDATED");
+            Mono.just(weather).flatMap(wth -> weatherDao.save(weather).then(weatherRedisDao.saveWeather(wth))).subscribe();
         }
         return Mono.when();
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public Mono<Void> stationUpdate() {
-        stationRedisDao.evict().subscribe();
-        stationDao.saveAll(stationList()).subscribe();
-        log.info("TABLE Stations ON Postgres UPDATED");
-        log.info("KEY Stations ON Redis UPDATED");
-        stationList().flatMap(stationRedisDao::save).subscribe();
-        return Mono.when();
+        return stationList().flatMap(st -> stationDao.save(st)
+                        .then(stationRedisDao.save(st))
+                        .doOnSuccess(l -> {
+                            log.info("TABLE Stations ON Postgres UPDATED");
+                            log.info("KEY Stations ON Redis UPDATED");
+                        }))
+                .then();
     }
 
     private Flux<Station> stationList() {
 
-        Station stationUfa = new Station();
-        stationUfa.setStationCode("UFA");
-        stationUfa.setName("Ufa");
-        stationUfa.setCountry("RF");
+        List<Station> stationList = new ArrayList<Station>();
 
-        Station stationOkt = new Station();
-        stationOkt.setStationCode("OKT");
-        stationOkt.setName("Oktyabrsk");
-        stationOkt.setCountry("RF");
+        for (int i = 0; i < 500; i++) {
+            Station station = Instancio.of(Station.class)
+                    .generate(field("stationCode"), gen -> gen.text().pattern("#C#C#C#C#C"))
+                    .generate(field("name"), gen -> gen.text().pattern("#C#c#c#c#c#c"))
+                    .generate(field("country"), gen -> gen.text().pattern("#C#C"))
+                    .ignore(field("weather"))
+                    .ignore(field("id"))
+                    .create();
 
-        Station stationBlr = new Station();
-        stationBlr.setStationCode("BLR");
-        stationBlr.setName("Beloretsk");
-        stationBlr.setCountry("RF");
-
-        Station stationSby = new Station();
-        stationSby.setStationCode("SBY");
-        stationSby.setName("Sibay");
-        stationSby.setCountry("RF");
-
-        Station stationStr = new Station();
-        stationStr.setStationCode("STR");
-        stationStr.setName("Sterlitamak");
-        stationStr.setCountry("RF");
-
-        Station stationKzn = new Station();
-        stationKzn.setStationCode("KZN");
-        stationKzn.setName("Kazan");
-        stationKzn.setCountry("RF");
-
-        return Flux.just(stationBlr, stationKzn, stationOkt, stationUfa, stationStr, stationSby);
+            stationCodes.add(station.getStationCode());
+            stationList.add(station);
+        }
+        return Flux.fromIterable(stationList);
     }
 }

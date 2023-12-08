@@ -12,9 +12,4 @@ public interface StationMapper {
 
     @InheritInverseConfiguration
     Station map(StationDto dto);
-
-    Station deserial(String json);
-
-    String serial(Station entity);
-
 }

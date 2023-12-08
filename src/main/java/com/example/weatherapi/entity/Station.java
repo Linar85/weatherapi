@@ -1,5 +1,6 @@
 package com.example.weatherapi.entity;
 
+import com.example.weatherapi.dto.WeatherDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -8,7 +9,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
-import java.util.List;
+
 @Table(name = "stations")
 @Data
 @NoArgsConstructor
@@ -26,5 +27,5 @@ public class Station implements Serializable {
     @Transient
     @ToString.Exclude
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<Weather> weathers;
+    private WeatherDto weather;
 }

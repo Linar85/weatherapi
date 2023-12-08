@@ -31,18 +31,18 @@ class ApiKeyRedisDaoTest {
     @DynamicPropertySource
     private static void registerRedisProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
-        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379).toString());
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getFirstMappedPort().toString());
     }
+
+    ApiKey apiKey = ApiKey.builder()
+            .id(1L)
+            .apiKey("qwerty")
+            .userId(2L)
+            .build();
+    String akey = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
 
     @Test
     void save() {
-        ApiKey apiKey = ApiKey.builder()
-                .id(1L)
-                .apiKey("qwerty")
-                .userId(2L)
-                .build();
-
-        String akey = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
 
         StepVerifier.create(apiKeyRedisDao.save(apiKey)
                         .thenMany(redisOperations.opsForValue().get(akey)))
@@ -52,13 +52,6 @@ class ApiKeyRedisDaoTest {
 
     @Test
     void findByKey() {
-        ApiKey apiKey = ApiKey.builder()
-                .id(1L)
-                .apiKey("qwerty")
-                .userId(2L)
-                .build();
-
-        String akey = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
 
         StepVerifier.create(redisOperations.opsForValue().set(akey, apiKey)
                         .thenMany(apiKeyRedisDao.findByKey("qwerty")))
@@ -68,13 +61,6 @@ class ApiKeyRedisDaoTest {
 
     @Test
     void findByWrongKey() {
-        ApiKey apiKey = ApiKey.builder()
-                .id(1L)
-                .apiKey("qwerty")
-                .userId(2L)
-                .build();
-
-        String akey = "apikey#" + apiKey.getUserId() + "#" + apiKey.getApiKey();
 
         StepVerifier.create(redisOperations.opsForValue().set(akey, apiKey)
                         .thenMany(apiKeyRedisDao.findByKey("another_key")))

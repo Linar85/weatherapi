@@ -25,4 +25,8 @@ public class WeatherRedisDao implements Serializable {
         return this.redisTemplate.keys("*" + stationCode + "*")
                 .flatMap(key -> this.redisTemplate.opsForValue().get(key));
     }
+
+    public Flux<Long> evict() {
+        return this.redisTemplate.keys("*weather*").flatMap(redisTemplate::delete);
+    }
 }

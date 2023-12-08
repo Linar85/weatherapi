@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WeatherDto {
-    private String id;
+//    private String id;
     private Double tempC;
     private Integer windKph;
     private String windDir;

@@ -4,6 +4,7 @@ import com.example.weatherapi.dto.StationDto;
 import com.example.weatherapi.entity.Station;
 import com.example.weatherapi.entity.Weather;
 import com.example.weatherapi.mapper.StationMapper;
+import com.example.weatherapi.mapper.WeatherMapper;
 import com.example.weatherapi.repository.StationDao;
 import com.example.weatherapi.repository.StationRedisDao;
 import com.example.weatherapi.repository.WeatherDao;
@@ -23,6 +24,7 @@ public class StationService {
     private final StationDao stationDao;
     private final WeatherDao weatherDao;
     private final StationMapper stationMapper;
+    private final WeatherMapper weatherMapper;
     private final StationRedisDao stationRedisDao;
     private final WeatherRedisDao weatherRedisDao;
 
@@ -37,8 +39,7 @@ public class StationService {
                             return st;
                         }));
     }
-
-    public Mono<StationDto> findWeathersOnStationByStationCode(String stationCode) {
+    public Mono<StationDto> findLastWeathersOnStationByStationCode(String stationCode) {
         return Mono.zip(stationRedisDao.findByStationCode(stationCode)
                                 .switchIfEmpty(
                                         stationDao.findByStationCode(stationCode)
@@ -53,12 +54,11 @@ public class StationService {
                                 .map(weather -> {
                                     weatherRedisDao.saveWeather(weather).subscribe();
                                     return weather;
-                                })
-                                .collectList())
+                                }).collectList())
                 .map(tuples -> {
                     Station station = tuples.getT1();
-                    List<Weather> weathers = tuples.getT2();
-                    station.setWeathers(weathers);
+                    Weather weather = tuples.getT2().stream().findFirst().orElse(null);
+                    station.setWeather(weatherMapper.map(weather));
                     return stationMapper.map(station);
                 });
     }

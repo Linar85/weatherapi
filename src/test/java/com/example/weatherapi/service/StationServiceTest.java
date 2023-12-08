@@ -41,7 +41,6 @@ class StationServiceTest {
     @Spy
     private StationMapper stationMapper = Mappers.getMapper(StationMapper.class);
 
-
     @Test
     void findAvailableStations() {
         Station station1 = Station.builder()
@@ -76,9 +75,7 @@ class StationServiceTest {
         Mockito.when(stationRedisDao.save(any(Station.class))).thenReturn(Mono.when());
 
         StepVerifier.create(stationService.findAvailableStations())
-                .consumeNextWith(st -> {
-                    Assertions.assertEquals(st, station);
-                })
+                .consumeNextWith(st -> Assertions.assertEquals(st, station))
                 .verifyComplete();
     }
 
@@ -93,12 +90,10 @@ class StationServiceTest {
                 .stationCode("testCode2")
                 .build();
         Weather weather1 = Weather.builder()
-                .id("1")
                 .stationCode("testCode1")
                 .createdAt(LocalDateTime.now())
                 .build();
         Weather weather2 = Weather.builder()
-                .id("2")
                 .stationCode("testCode2")
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -109,10 +104,10 @@ class StationServiceTest {
         Mockito.when(weatherDao.findAllByStationCode(anyString())).thenReturn(Flux.just(weather2));
         Mockito.when(weatherRedisDao.saveWeather(any(Weather.class))).thenReturn(Mono.when());
 
-        StepVerifier.create(stationService.findWeathersOnStationByStationCode("testCode"))
+        StepVerifier.create(stationService.findLastWeathersOnStationByStationCode("testCode1"))
                 .consumeNextWith(st -> {
                     Assertions.assertEquals(stationMapper.map(station1), st);
-                    Assertions.assertEquals(weather1, st.getWeathers().get(0));
+                    Assertions.assertEquals(weather1, st.getWeather());
                     Assertions.assertNotEquals(stationMapper.map(station2), st);
                 })
                 .verifyComplete();
@@ -128,13 +123,7 @@ class StationServiceTest {
                 .id("2")
                 .stationCode("testCode2")
                 .build();
-        Weather weather1 = Weather.builder()
-                .id("1")
-                .stationCode("testCode1")
-                .createdAt(LocalDateTime.now())
-                .build();
         Weather weather2 = Weather.builder()
-                .id("2")
                 .stationCode("testCode2")
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -146,10 +135,10 @@ class StationServiceTest {
         Mockito.when(weatherRedisDao.saveWeather(any(Weather.class))).thenReturn(Mono.when());
         Mockito.when(stationRedisDao.save(any(Station.class))).thenReturn(Mono.when());
 
-        StepVerifier.create(stationService.findWeathersOnStationByStationCode("testCode"))
+        StepVerifier.create(stationService.findLastWeathersOnStationByStationCode("testCode1"))
                 .consumeNextWith(st -> {
                     Assertions.assertEquals(stationMapper.map(station2), st);
-                    Assertions.assertEquals(weather2, st.getWeathers().get(0));
+                    Assertions.assertEquals(weather2, st.getWeather());
                     Assertions.assertNotEquals(stationMapper.map(station1), st);
                 })
                 .verifyComplete();

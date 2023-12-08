@@ -46,12 +46,6 @@ class StationRedisDaoTest {
             .stationCode("OMG")
             .country("KZ")
             .build();
-
-    @BeforeEach
-    void setUp() {
-        redisOperations.opsForList().delete(KEY).subscribe();
-    }
-
     @Test
     void save() {
         StepVerifier.create(stationRedisDao.save(station1))

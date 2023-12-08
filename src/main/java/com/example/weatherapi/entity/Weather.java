@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 @Data
 public class Weather implements Serializable {
     @Id
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String id;
     @Column("temp_c")
     private Integer tempC;
